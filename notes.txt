@@ -1,0 +1,101 @@
+Okay, so before we hop into programming, we need to define how exactly our architecture will work. Here we go:
+
+1. Hardware Specifications
+
+I want something simple, but that would be good enough to scale up without many software problems, so:
+
+* 16-bit architecture
+* 8 general-purpose registers + SP + PC + FLAGS (negative, zero, positive, halt)
+* 64KiB RAM (maximum indexable memory for 16-bit)
+
+2. Instruction Set
+
+* Simple and fixed-length (like RV32I)
+* 16-bit instructions
+* 20-30 instructions (5-bit opcode)
+
+So here we go:
+
+Immediate instructions:
+
+* LLI rX, imm (rX <- imm)
+* LUI rX, imm (rX <- (imm << 8))
+* LDI rX, imm (rX <- imm) (this is actually more of an assembly macro that will become 2 instructions, LLI and LUI)
+
+OBS: The immediate value may be a label, so the register will be loaded with the address of the instruction that follows
+the said label
+
+Memory instructions:
+
+* MOV rX, rY (rX <- rY)
+* MOV rX, [rY] (rX <- mem[rY])
+* MOV [rX], rY (mem[rX] <- rY)
+
+Arithmetic-Logic instructions:
+
+* NOT rX, rY (rX <- ~rY)
+* ADD rX, rY, rZ (rX <- rY + rZ)
+* SUB rX, rY, rZ (rX <- rY - rZ)
+* AND rX, rY, rZ (rX <- rY & rZ)
+* OR  rX, rY, rZ (rX <- rY | rZ)
+* XOR rX, rY, rZ (rX <- rY ^ rZ)
+* SHL rX, rY, imm (rX <- (rY << imm))
+* SHR rX, rY, imm (rX <- (rY >> imm))
+* CMP rX, rY (set flags according to the result of rX - rY)
+
+Jump instructions:
+
+* JMP rX (unconditional jump)
+* JEQ rX (jump if flag Z is set)
+* JNE rX (jump if flag Z is not set)
+* JGT rX (jump if flag P is set)
+* JGE rX (jump if flag N is not set)
+* JLT rX (jump if flag N is set)
+* JLE rX (jump if flag P is not set)
+
+Stack instructions:
+
+* PUSH rX (push rX to the top of the stack)
+* POP rX (pop from the top of the stack to rX)
+
+Extra instructions:
+
+* NOP (no operation)
+* HLT (halt operation)
+
+3. Binary encoding of instructions:
+
+* 0 or 1 -> actual opcode
+* X -> bits to encode rX
+* Y -> bits to encode rY
+* I -> bits to encode imm
+* M -> bits to control between register and mem[register]
+* . -> unused / ignored
+
+* LLI  = XXX00000 IIIIIIII
+* LUI  = XXX00001 IIIIIIII
+* MOV  = ...00010 MXXXMYYY
+* NOT  = XXX00011 .YYY....
+* ADD  = XXX00100 .YYY.ZZZ
+* SUB  = XXX00101 .YYY.ZZZ
+* AND  = XXX00110 .YYY.ZZZ
+* OR   = XXX00111 .YYY.ZZZ
+* XOR  = XXX01000 .YYY.ZZZ
+* SHL  = XXX01001 .YYYIIII
+* SHR  = XXX01010 .YYYIIII
+* CMP  = XXX01011 .YYY....
+* JMP  = XXX01100 ........
+* JEQ  = XXX01101 ........
+* JNE  = XXX01110 ........
+* JGT  = XXX01111 ........
+* JGE  = XXX10000 ........
+* JLT  = XXX10001 ........
+* JLE  = XXX10010 ........
+* PUSH = XXX10011 ........
+* POP  = XXX10100 ........
+* HLT  = ...10101 ........
+* NOP  = ...10110 ........
+
+4. Specific workings
+
+* R0 will be hard-wired to zero to ease some operations
