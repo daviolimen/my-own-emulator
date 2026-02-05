@@ -18,45 +18,45 @@ So here we go:
 
 Immediate instructions:
 
-* LLI rX, imm (rX <- imm)
-* LUI rX, imm (rX <- (imm << 8))
-* LDI rX, imm (rX <- imm) (this is actually more of an assembly macro that will become 2 instructions, LLI and LUI)
+* LLI RX, imm (RX <- imm)
+* LUI RX, imm (RX <- (imm << 8))
+* LDI RX, imm (RX <- imm) (this is actually more of an assembly macro that will become 2 instructions, LLI and LUI)
 
 OBS: The immediate value may be a label, so the register will be loaded with the address of the instruction that follows
 the said label
 
 Memory instructions:
 
-* MOV rX, rY (rX <- rY)
-* MOV rX, [rY] (rX <- mem[rY])
-* MOV [rX], rY (mem[rX] <- rY)
+* MOV RX, RY (RX <- RY)
+* MOV RX, [RY] (RX <- mem[RY])
+* MOV [RX], RY (mem[RX] <- RY)
 
 Arithmetic-Logic instructions:
 
-* NOT rX, rY (rX <- ~rY)
-* ADD rX, rY, rZ (rX <- rY + rZ)
-* SUB rX, rY, rZ (rX <- rY - rZ)
-* AND rX, rY, rZ (rX <- rY & rZ)
-* OR  rX, rY, rZ (rX <- rY | rZ)
-* XOR rX, rY, rZ (rX <- rY ^ rZ)
-* SHL rX, rY, imm (rX <- (rY << imm))
-* SHR rX, rY, imm (rX <- (rY >> imm))
-* CMP rX, rY (set flags according to the result of rX - rY)
+* NOT RX, RY (RX <- ~RY)
+* ADD RX, RY, RZ (RX <- RY + RZ)
+* SUB RX, RY, RZ (RX <- RY - RZ)
+* AND RX, RY, RZ (RX <- RY & RZ)
+* OR  RX, RY, RZ (RX <- RY | RZ)
+* XOR RX, RY, RZ (RX <- RY ^ RZ)
+* SHL RX, RY, imm (RX <- (RY << imm))
+* SHR RX, RY, imm (RX <- (RY >> imm))
+* CMP RX, RY (set flags according to the result of RX - RY)
 
 Jump instructions:
 
-* JMP rX (unconditional jump)
-* JEQ rX (jump if flag Z is set)
-* JNE rX (jump if flag Z is not set)
-* JGT rX (jump if flag P is set)
-* JGE rX (jump if flag N is not set)
-* JLT rX (jump if flag N is set)
-* JLE rX (jump if flag P is not set)
+* JMP RX (unconditional jump)
+* JEQ RX (jump if flag Z is set)
+* JNE RX (jump if flag Z is not set)
+* JGT RX (jump if flag P is set)
+* JGE RX (jump if flag N is not set)
+* JLT RX (jump if flag N is set)
+* JLE RX (jump if flag P is not set)
 
 Stack instructions:
 
-* PUSH rX (push rX to the top of the stack)
-* POP rX (pop from the top of the stack to rX)
+* PUSH RX (push RX to the top of the stack)
+* POP RX (pop from the top of the stack to RX)
 
 Extra instructions:
 
@@ -66,8 +66,8 @@ Extra instructions:
 3. Binary encoding of instructions:
 
 * 0 or 1 -> actual opcode
-* X -> bits to encode rX
-* Y -> bits to encode rY
+* X -> bits to encode RX
+* Y -> bits to encode RY
 * I -> bits to encode imm
 * M -> bits to control between register and mem[register]
 * . -> unused / ignored

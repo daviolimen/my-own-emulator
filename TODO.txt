@@ -1,2 +1,3 @@
 - Prevent stack overflow and underflow in the emulator code
 - Add some directives on the assembly (.data section, .db, .dw, .ascii, etc)
+- Define the memory sections for the RAM memory

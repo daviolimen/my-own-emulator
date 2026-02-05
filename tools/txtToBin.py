@@ -1,7 +1,7 @@
 import sys
 
 if len(sys.argv) != 3:
-    print("Expected 2 arguments: input.txt and output.bin")
+    print("Expected 2 arguments: [input file] and [output file]")
     sys.exit(1)
 
 infile, outfile = sys.argv[1], sys.argv[2]

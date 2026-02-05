@@ -1,9 +1,7 @@
 ; teste de comentario
 
-MOV r1, r2
-ADD r2, r3, r4
-PUSH r5
-
-testando_labels:; comentario
-LDI r3, 100
-SKI r1, r2
+LLI R1, 123
+LLI R5, 0x12
+LUI R2, 0x03
+LDI R7, 0x1234
+HLT

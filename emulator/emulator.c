@@ -45,14 +45,13 @@ int runEmulator(const char* romPath) {
     initCpu(&cpu);
 
     while (true) {
-        /* Print debug to see the CPU state before each instruction
+        // Print debug to see the CPU state before each instruction
 
         for (uint8_t i = 0; i < 8; i++) printf("R%d: %x\n", i, cpu.registers[i]);
         printf("PC: %x\n", cpu.pc);
         printf("SP: %x\n", cpu.sp);
         printf("FLAGS: %x\n", cpu.flags);
 
-        */
         if (cpu.flags & HFLAG) break;
         uint16_t curInstruction = rom[cpu.pc];
         if (executeInstruction(&cpu, memory, curInstruction)) {
