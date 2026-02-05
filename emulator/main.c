@@ -3,7 +3,7 @@
 int main(int argc, char** argv) {
 
     if (argc != 2) {
-        puts("Usage: ./my_own_emulator [ROM path]");
+        puts("Usage: ./emulator [ROM path]");
         return -1;
     }
 
