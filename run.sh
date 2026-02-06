@@ -25,5 +25,5 @@ fi
 
 if [[ "$1" == "-r" ]]; then
   ${ASSEMBLER} "$2" "${filename%.*}.bin"
-  ${EMULATOR} "$2"
+  ${EMULATOR} "${filename%.*}.bin"
 fi
