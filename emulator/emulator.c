@@ -6,6 +6,8 @@
 
 #include <stdlib.h>
 
+#define DEBUG_MODE
+
 // Function to load the instructions from file to rom array
 int loadRom(const char* romPath) {
     FILE* romFile = fopen(romPath, "rb");
@@ -47,17 +49,42 @@ int runEmulator(const char* romPath) {
     while (true) {
         // Print debug to see the CPU state before each instruction
 
-        for (uint8_t i = 0; i < 8; i++) printf("R%d: %x\n", i, cpu.registers[i]);
-        printf("PC: %x\n", cpu.pc);
-        printf("SP: %x\n", cpu.sp);
-        printf("FLAGS: %x\n", cpu.flags);
-
-        if (cpu.flags & HFLAG) break;
         uint16_t curInstruction = rom[cpu.pc];
+
+
         if (executeInstruction(&cpu, memory, curInstruction)) {
             perror("Error executing instruction");
             return -1;
         }
+
+#ifdef DEBUG_MODE
+        fputs("\e[1;1H\e[2J", stdout);
+        fflush(stdout);
+        puts("EMULATOR DEBUGGER");
+        printf("\tCurrent instruction: 0x%x", curInstruction);
+        if (cpu.flags & HFLAG) printf(" (HLT, the execution has halted)");
+        printf("\n");
+        printf("\tPC: 0x%x\n", cpu.pc);
+        printf("\tSP: 0x%x\n", cpu.sp);
+        printf("\tFLAGS: 0x%x\n", cpu.flags);
+
+        while (true) {
+            printf("> ");
+            char command;
+            char str[32];
+            scanf(" %c", &command);
+            if (command == 'N') break;
+            scanf("%s", str);
+            unsigned num = strtol(str, NULL, 0);
+            if (command == 'R') printf("Register %d: 0x%x\n", num, cpu.registers[num]);
+            else if (command == 'M') printf("Memory[0x%x]: 0x%x\n", num, memory[num]);
+            else puts("Invalid instruction");
+        }
+
+#endif // DEBUG_MODE
+
+        if (cpu.flags & HFLAG) break;
+
         cpu.pc++;
     }
 

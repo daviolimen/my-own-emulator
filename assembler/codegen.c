@@ -28,7 +28,7 @@ void addLabel(const char* name, uint16_t address) {
 // Function to check if a register operand is valid and return its value
 int checkRegister(const char* reg) {
     for (uint8_t i = 0; i < 16; i++) {
-        if (strcmp(reg, registersStrings[i]) == 0) return i > 7 ? i + 8 : i;
+        if (strcmp(reg, registersStrings[i]) == 0) return i;
     }
     return -1;
 }

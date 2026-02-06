@@ -1,14 +1,7 @@
 ; teste de comentario
 
-comeco: LDI R0, 10
 LDI R1, 20
-LDI R2, meio
-JMP R2
-
-fim:
+LDI R2, 30
+MOV [R2], R1
+ADD R3, R1, R2
 HLT
-
-meio:
-LDI R2, fim
-CMP R0, R1
-JGT R2
