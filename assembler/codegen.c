@@ -6,6 +6,25 @@
 
 #include <stdlib.h>
 
+// Array for the labels
+label labels[128];
+int labelCnt = 0;
+
+// Function to find label in the array, O(N) for simplicity, could be optimized to hash for O(1) or RBT for O(log N)
+int findLabel(const char* name) {
+    for (int i = 0; i < 128; i++) {
+        if (strcmp(labels[i].label, name) == 0) return labels[i].address;
+    }
+    return -1;
+}
+
+// Function to add label to the label array
+void addLabel(const char* name, uint16_t address) {
+    strcpy(labels[labelCnt].label, name);
+    labels[labelCnt].address = address;
+    labelCnt++;
+}
+
 // Function to check if a register operand is valid and return its value
 int checkRegister(const char* reg) {
     for (uint8_t i = 0; i < 16; i++) {
@@ -26,7 +45,15 @@ int genCode(FILE* outputFile, uint8_t opcode, const char* op1, const char* op2, 
     if (opcode < 19) return genJumpPushPop(outputFile, opcode, op1);
     if (opcode < 23) return genOthers(outputFile, opcode);
 
-    uint16_t imm = strtol(op2, NULL, 0);
+    uint16_t imm;
+    if ((op2[0] >= '0') && (op2[0] <= '9')) imm = strtol(op2, NULL, 0);
+    else {
+        imm = findLabel(op2);
+        if (imm == (uint16_t) -1) {
+            setErrorContext(lineCnt, op2, "Invalid label");
+            return -1;
+        }
+    }
     return genLoad(outputFile, 0, op1, imm & 0xFF) | genLoad(outputFile, 1, op1, imm >> 8);
 }
 
@@ -60,7 +87,7 @@ int genMov(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2)
 int genArit(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2, const char* reg3) {
     int reg1Num = checkRegister(reg1);
     int reg2Num = checkRegister(reg2);
-    int reg3Num = checkRegister(reg3);
+    int reg3Num = reg3 ? checkRegister(reg3) : 0;
     if (reg1Num == -1 || reg1Num > 7) {
         setErrorContext(lineCnt, reg1, "Invalid operand");
         return -1;

@@ -62,7 +62,7 @@ void exe_mov(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes NOT operation
 void exe_not(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    instruction &= 0x70;
+    instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
     cpu->registers[rx] = ~cpu->registers[ry];
 }
@@ -70,7 +70,7 @@ void exe_not(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes ADD operation
 void exe_add(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    instruction &= 0x70;
+    instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
     instruction &= 0x07;
     const uint8_t rz = instruction;
@@ -80,7 +80,7 @@ void exe_add(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes SUB operation
 void exe_sub(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    instruction &= 0x70;
+    instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
     instruction &= 0x07;
     const uint8_t rz = instruction;
@@ -90,7 +90,7 @@ void exe_sub(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes AND operation
 void exe_and(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    instruction &= 0x70;
+    instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
     instruction &= 0x07;
     const uint8_t rz = instruction;
@@ -100,7 +100,7 @@ void exe_and(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes OR operation
 void exe_or(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    instruction &= 0x70;
+    instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
     instruction &= 0x07;
     const uint8_t rz = instruction;
@@ -110,7 +110,7 @@ void exe_or(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes XOR operation
 void exe_xor(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    instruction &= 0x70;
+    instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
     instruction &= 0x07;
     const uint8_t rz = instruction;
@@ -120,7 +120,7 @@ void exe_xor(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes left shift operation
 void exe_shl(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    instruction &= 0x70;
+    instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
     instruction &= 0x0F;
     const uint8_t imm = instruction;
@@ -130,7 +130,7 @@ void exe_shl(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes right shift operation
 void exe_shr(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    instruction &= 0x70;
+    instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
     instruction &= 0x0F;
     const uint8_t imm = instruction;
@@ -140,7 +140,7 @@ void exe_shr(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes CMP operation
 void exe_cmp(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    instruction &= 0x70;
+    instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
     const int16_t result = (int16_t) (cpu->registers[rx] - cpu->registers[ry]);
     cpu->flags &= ~0x07;

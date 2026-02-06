@@ -9,6 +9,21 @@
 #include "error.h"
 #include "globals.h"
 
+// Struct to store labels
+typedef struct {
+    char label[32];
+    uint16_t address;
+} label;
+
+extern label labels[128];
+extern int labelCnt;
+
+// Function to find label in the array, O(N) for simplicity, could be optimized to hash for O(1) or RBT for O(log N)
+int findLabel(const char* name);
+
+// Function to add label to the label array
+void addLabel(const char* name, uint16_t address);
+
 static const char* registersStrings[] = {
     "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7",
     "[R0]", "[R1]", "[R2]", "[R3]", "[R4]", "[R5]", "[R6]", "[R7]"

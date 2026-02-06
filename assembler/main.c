@@ -53,31 +53,6 @@ int findInstruction(const char* mnemonic) {
     return -1;
 }
 
-// Struct to store labels
-typedef struct {
-    char label[32];
-    uint16_t address;
-} label;
-
-// Array for the labels
-label labels[128];
-int labelCnt = 0;
-
-// Function to find label in the array, O(N) for simplicity, could be optimized to hash for O(1) or RBT for O(log N)
-int findLabel(const char* name) {
-    for (int i = 0; i < 128; i++) {
-        if (strcmp(labels[i].label, name) == 0) return labels[i].address;
-    }
-    return -1;
-}
-
-// Function to add label to the label array
-void addLabel(const char* name, uint16_t address) {
-    strcpy(labels[labelCnt].label, name);
-    labels[labelCnt].address = address;
-    labelCnt++;
-}
-
 // Utility function to open a file using fopen
 FILE* openInputFile(const char* filePath) {
     FILE* file = fopen(filePath, "r");
