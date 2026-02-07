@@ -7,9 +7,20 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+// Struct to store labels
+typedef struct {
+    char label[32];
+    uint16_t address;
+} label;
+
 // Array for the labels
 label labels[128];
 int labelCnt = 0;
+
+static const char* registersStrings[] = {
+    "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7",
+    "[R0]", "[R1]", "[R2]", "[R3]", "[R4]", "[R5]", "[R6]", "[R7]"
+};
 
 // Function to find label in the array, O(N) for simplicity, could be optimized to hash for O(1) or RBT for O(log N)
 int findLabel(const char* name) {
@@ -114,47 +125,6 @@ int checkRegister(const char* reg) {
     return -1;
 }
 
-// Function to generate the instructions, there are faster ways than using lots of if-statements, like using an array
-// of function addresses, as in the emulator, but there is no need to complicate things here
-int genCode(FILE* outputFile, uint8_t opcode, const char* op1, const char* op2, const char* op3) {
-    char* endptr;
-    if (opcode < 2) {
-        if (op2 == NULL) {
-            setErrorContext(lineCnt, "", "Missing operand 2");
-            return -1;
-        }
-        uint8_t imm = strtol(op2, &endptr, 0);
-        if (*endptr == '\0') return genLoad(outputFile, opcode, op1, imm);
-        setErrorContext(lineCnt, op2, "Invalid operand");
-        return -1;
-    }
-    if (opcode == 2) return genMov(outputFile, opcode, op1, op2);
-    if (opcode < 12) return genArit(outputFile, opcode, op1, op2, op3);
-    if (opcode < 19) return genJumpPushPop(outputFile, opcode, op1);
-    if (opcode < 23) return genOthers(outputFile, opcode);
-
-    if (op2 == NULL) {
-        setErrorContext(lineCnt, "", "Missing operand 2");
-        return -1;
-    }
-
-    uint16_t imm;
-    if ((op2[0] >= '0') && (op2[0] <= '9')) {
-        imm = strtol(op2, &endptr, 0);
-        if (*endptr != '\0') {
-            setErrorContext(lineCnt, op2, "Invalid operand");
-            return -1;
-        }
-    } else {
-        imm = findLabel(op2);
-        if (imm == (uint16_t) -1) {
-            setErrorContext(lineCnt, op2, "Invalid label");
-            return -1;
-        }
-    }
-    return genLoad(outputFile, 0, op1, imm & 0xFF) | genLoad(outputFile, 1, op1, imm >> 8);
-}
-
 int genLoad(FILE* outputFile, uint8_t opcode, const char* reg, uint8_t imm) {
     int regNum = checkRegister(reg);
     if (regNum == -1 || regNum > 7) {
@@ -190,6 +160,19 @@ int genMov(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2)
     return 0;
 }
 
+int genShift(FILE* outputFile, uint8_t opcode, int reg1Num, int reg2Num, const char* imm) {
+    char* endptr;
+    uint8_t immNum = strtol(imm, &endptr, 0);
+    if (*endptr != '\0') {
+        setErrorContext(lineCnt, imm, "Invalid operand");
+        return -1;
+    }
+
+    uint16_t inst = (reg1Num << 13) | ((opcode & 0x1F) << 8) | ((reg2Num & 0x07) << 4) | (immNum & 0x0F);
+    fwrite(&inst, sizeof(uint16_t), 1, outputFile);
+    return 0;
+}
+
 int genArit(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2, const char* reg3) {
     if (reg1 == NULL) {
         setErrorContext(lineCnt, "", "Missing operand 1");
@@ -199,12 +182,18 @@ int genArit(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2
         setErrorContext(lineCnt, "", "Missing operand 2");
         return -1;
     }
-    if ((opcode >= 4) && (opcode <= 8) && (reg3 == NULL)) {
+    if ((opcode >= 4) && (opcode <= 10) && (reg3 == NULL)) {
         setErrorContext(lineCnt, "", "Missing operand 3");
         return -1;
     }
+
     int reg1Num = checkRegister(reg1);
     int reg2Num = checkRegister(reg2);
+
+    if (opcode >= 9 && opcode <= 10) { // I had forgotten of the shifts before, so I am doing it now...
+        return genShift(outputFile, opcode, reg1Num, reg2Num, reg3);
+    }
+
     int reg3Num = reg3 ? checkRegister(reg3) : 0;
     if (reg1Num == -1 || reg1Num > 7) {
         setErrorContext(lineCnt, reg1, "Invalid operand");
@@ -228,6 +217,7 @@ int genJumpPushPop(FILE* outputFile, uint8_t opcode, const char* operand) {
         setErrorContext(lineCnt, "", "Missing operand");
         return -1;
     }
+
     int regNum = checkRegister(operand);
     if (regNum == -1 || regNum > 7) {
         setErrorContext(lineCnt, operand, "Invalid operand");
@@ -242,4 +232,45 @@ int genOthers(FILE* outputFile, uint8_t opcode) {
     uint16_t inst = ((opcode & 0x1F) << 8);
     fwrite(&inst, sizeof(uint16_t), 1, outputFile);
     return 0;
+}
+
+// Function to generate the instructions, there are faster ways than using lots of if-statements, like using an array
+// of function addresses, as in the emulator, but there is no need to complicate things here
+int genCode(FILE* outputFile, uint8_t opcode, const char* op1, const char* op2, const char* op3) {
+    char* endptr;
+    if (opcode < 2) {
+        if (op2 == NULL) {
+            setErrorContext(lineCnt, "", "Missing operand 2");
+            return -1;
+        }
+        uint8_t imm = strtol(op2, &endptr, 0);
+        if (*endptr == '\0') return genLoad(outputFile, opcode, op1, imm);
+        setErrorContext(lineCnt, op2, "Invalid operand");
+        return -1;
+    }
+    if (opcode == 2) return genMov(outputFile, opcode, op1, op2);
+    if (opcode < 12) return genArit(outputFile, opcode, op1, op2, op3);
+    if (opcode < 21) return genJumpPushPop(outputFile, opcode, op1);
+    if (opcode < 23) return genOthers(outputFile, opcode);
+
+    if (op2 == NULL) {
+        setErrorContext(lineCnt, "", "Missing operand 2");
+        return -1;
+    }
+
+    uint16_t imm;
+    if ((op2[0] >= '0') && (op2[0] <= '9')) {
+        imm = strtol(op2, &endptr, 0);
+        if (*endptr != '\0') {
+            setErrorContext(lineCnt, op2, "Invalid operand");
+            return -1;
+        }
+    } else {
+        imm = findLabel(op2);
+        if (imm == (uint16_t) -1) {
+            setErrorContext(lineCnt, op2, "Invalid label");
+            return -1;
+        }
+    }
+    return genLoad(outputFile, 0, op1, imm & 0xFF) | genLoad(outputFile, 1, op1, imm >> 8);
 }

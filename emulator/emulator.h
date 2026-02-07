@@ -9,10 +9,6 @@
 
 #include "computer.h"
 
-static CPU cpu;
-static uint8_t memory[MEM_SIZE];
-static uint16_t rom[MEM_SIZE];
-
 int runEmulator(const char* romPath);
 
 #endif //EMULATOR_EMULATOR_H

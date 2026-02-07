@@ -12,16 +12,6 @@ void initCpu(CPU* cpu) {
     cpu->flags = 0;
 }
 
-// Execute instruction passed as parameter through a function pointer array
-// returns true if the instruction is invalid, otherwise false
-int executeInstruction(CPU* cpu, uint8_t* memory, uint16_t instruction) {
-    const uint8_t opcode = (instruction >> 8) & 0x1F;
-    if (opcode > 22) return -1;
-    if (opcode == 22) return 0;
-    (*operations[opcode])(cpu, memory, instruction);
-    return 0;
-}
-
 // Executes load lower immediate operation
 void exe_lli(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t imm = instruction & 0xFF;
@@ -208,4 +198,19 @@ void exe_pop(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes HALT operation
 void exe_hlt(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     cpu->flags |= HFLAG;
+}
+
+void (*operations[])(CPU*, uint8_t*, uint16_t) = {
+    exe_lli, exe_lui, exe_mov, exe_not, exe_add, exe_sub, exe_and, exe_or, exe_xor, exe_shl, exe_shr, exe_cmp, exe_jmp,
+    exe_jeq, exe_jne, exe_jgt, exe_jge, exe_jlt, exe_jle, exe_push, exe_pop, exe_hlt
+};
+
+// Execute instruction passed as parameter through a function pointer array
+// returns true if the instruction is invalid, otherwise false
+int executeInstruction(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+    const uint8_t opcode = (instruction >> 8) & 0x1F;
+    if (opcode > 22) return -1;
+    if (opcode == 22) return 0;
+    (*operations[opcode])(cpu, memory, instruction);
+    return 0;
 }

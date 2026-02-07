@@ -102,11 +102,22 @@ Extra instructions:
 4. Debugging
 
 So I added a debugging mode for the emulator, that basically just allows you to go instruction by instruction through
-what the computer is doing. There are basically 3 commands:
+what the computer is doing. There are basically 4 commands:
 
 N -> go to the next instruction
 R [num] -> print the value of the register [num]
 M [num] -> print the value of the memory at address [num]
 W [num] -> wait for [num] steps
 
+OBS: The debugger shows the state after each instruction, so the current instruction that it shows has already been
+executed
+
 5. Memory Mapping
+
+I have 64KiB of RAM, it is a lot for simple computation, but not much for graphics. The most accurate way to handle this
+would be like old consoles used to do with tile-based graphics. But as I just want to get things to be as simple as
+possible, I guess I will just map the screen to some region in memory. So here it is:
+
+0x0000 - 0x1FFF -> static memory defined with the assembly directives
+0x2000 - 0x9FFF -> 256x128 monochromatic framebuffer to be mapped onto a window
+0xA000 - 0xFFFF -> stack region

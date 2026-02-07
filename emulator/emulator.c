@@ -5,8 +5,22 @@
 #include "emulator.h"
 
 #include <stdlib.h>
+#include <time.h>
 
-#define DEBUG_MODE
+#include "graphics.h"
+
+// enable/disable debug mode
+// #define DEBUG_MODE
+
+// timing-related defines
+#define CPU_FREQ_HZ 1000000LL
+#define CPU_PERIOD_NS (1000000000LL / CPU_FREQ_HZ)
+#define FRAMES_PER_SECOND 60
+#define CYCLES_PER_FRAME (CPU_FREQ_HZ / FRAMES_PER_SECOND)
+
+CPU cpu;
+uint8_t memory[MEM_SIZE];
+uint16_t rom[MEM_SIZE];
 
 // Function to load the instructions from file to rom array
 int loadRom(const char* romPath) {
@@ -51,23 +65,41 @@ int runEmulator(const char* romPath) {
     }
 
     initCpu(&cpu);
+    initWindow();
 
 #ifdef DEBUG_MODE
     unsigned waitCnt = 0;
 #endif
 
+    // I don't know much about timing in C, so I don't know if this is the usual way to handle timing, but anyways...
+    long long cyclesPassed = 0;
+    struct timespec prevTime, curTime;
+    timespec_get(&prevTime, TIME_UTC);
     while (true) {
-        // Print debug to see the CPU state before each instruction
+        timespec_get(&curTime, TIME_UTC);
+        long long diff = (curTime.tv_sec - prevTime.tv_sec) * 1000000000LL + (curTime.tv_nsec - prevTime.tv_nsec);
+        if (diff < CPU_PERIOD_NS) continue;
+        prevTime = curTime;
+
+        if (cyclesPassed >= CYCLES_PER_FRAME) {
+            if (windowLoop(memory + FRAMEBUFFER_ADDRESS) == -1) {
+                printf("SDL requested quit\n");
+                cpu.flags |= HFLAG;
+            }
+            cyclesPassed = 0;
+        }
+        cyclesPassed++;
 
         uint16_t curInstruction = rom[cpu.pc];
-
 
         if (executeInstruction(&cpu, memory, curInstruction)) {
             perror("Error executing instruction");
             return -1;
         }
 
+
 #ifdef DEBUG_MODE
+        // Print debug to see the CPU state after each instruction
 
         fputs("\e[1;1H\e[2J", stdout);
         fflush(stdout);
