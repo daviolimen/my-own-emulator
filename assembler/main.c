@@ -1,11 +1,10 @@
-// I started doing this as a single-file project and ended up
+// I started doing this as a single-file project, but things grew quickly so it is quite messy, buuut anyways...
 
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include "codegen.h"
 
-#define MAX_LINE_LENGTH 256
 
 // Struct to store the instructions
 typedef struct {
@@ -76,8 +75,9 @@ FILE* openOutputFile(const char* filePath) {
 
 // Function for the first pass, used to parse and store the labels
 int firstPass(FILE* inputFile) {
-    char line[MAX_LINE_LENGTH];
+    char line[MAX_LINE_LENGTH], lineCpy[MAX_LINE_LENGTH];
     while (fgets(line, MAX_LINE_LENGTH, inputFile) != NULL) {
+        strcpy(lineCpy, line);
         lineCnt++;
 
         char* comment = strchr(line, ';'); // find where the comment starts if there is one
@@ -88,13 +88,18 @@ int firstPass(FILE* inputFile) {
         if (token == NULL) continue;
 
         size_t len = strlen(token);
-        if (token[len - 1] == ':') {
+        if (token[len - 1] == ':') { // label
             token[len - 1] = '\0';
             addLabel(token, instructionCnt);
             token = strtok(NULL, "\t\n\r\f\v ,");
         }
 
         if (token == NULL) continue;
+
+        if (token[0] == '.') { // assembler directive
+            if (processDirective(token, lineCpy) == -1) return -1;
+            continue;
+        }
 
         if (findInstruction(token) == -1) {
             setErrorContext(lineCnt, token, "Invalid token");
@@ -125,6 +130,8 @@ int secondPass(FILE* inputFile, FILE* outputFile) {
         if (token[len - 1] == ':') token = strtok(NULL, "\t\n\r\f\v ,");
 
         if (token == NULL) continue;
+
+        if (token[0] == '.') continue;
 
         int idx = findInstruction(token);
         if (idx == -1) { // this should never happen because it should have been caught on the first pass
@@ -167,6 +174,8 @@ int main(int argc, char** argv) {
         printf("Unable to open/create output file\n");
         return -1;
     }
+
+    fwrite(dataSection, sizeof(uint8_t), 0x2000, outputFile);
 
     rewind(inputFile);
 

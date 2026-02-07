@@ -4,6 +4,7 @@
 
 #include "codegen.h"
 
+#include <ctype.h>
 #include <stdlib.h>
 
 // Array for the labels
@@ -25,6 +26,86 @@ void addLabel(const char* name, uint16_t address) {
     labelCnt++;
 }
 
+// Buffer to store the data defined in the program
+uint8_t dataSection[0x2000];
+
+// Function to process assembler directives
+int processDirective(const char* directive, const char* line) {
+    char* token = strtok(NULL, "\t\n\r\f\v ,");
+    if (token == NULL) {
+        setErrorContext(lineCnt, "", "Missing data label");
+        return -1;
+    }
+    if (isdigit(token[0])) {
+        setErrorContext(lineCnt, token, "Label cannot start with number");
+        return -1;
+    }
+    char* endptr;
+    addLabel(token, dataCnt);
+    if (strcmp(directive, ".db") == 0) {
+        while ((token = strtok(NULL, "\t\n\r\f\v ,"))) {
+            uint8_t num = (uint8_t) strtol(token, &endptr, 0);
+            if (*endptr != '\0') {
+                setErrorContext(lineCnt, token, "Invalid data");
+                return -1;
+            }
+            dataSection[dataCnt++] = num;
+        }
+    } else if (strcmp(directive, ".dw") == 0) {
+        while ((token = strtok(NULL, "\t\n\r\f\v ,"))) {
+            uint16_t num = (uint16_t) strtol(token, &endptr, 0);
+            if (*endptr != '\0') {
+                setErrorContext(lineCnt, token, "Invalid data");
+                return -1;
+            }
+            dataSection[dataCnt++] = num;
+            dataSection[dataCnt++] = num >> 8;
+        }
+    } else if (strcmp(directive, ".ascii") == 0) {
+        token = strtok(NULL, "\t\n\r\f\v ," );
+        if (token == NULL) return 0;
+        if (token[0] != '"') {
+            setErrorContext(lineCnt, token, "Missing opening quote");
+            return -1;
+        }
+
+        // as we can only have one string literal in the line, I get the first and last quote I find, this way the
+        // assembler can handle quotes inside the string quotes
+        size_t idx1 = 0;
+        for (size_t i = 0; i < MAX_LINE_LENGTH; i++) {
+            if (line[i] == '"') {
+                idx1 = i;
+                break;
+            }
+        }
+        size_t idx2 = 0;
+        for (size_t i = MAX_LINE_LENGTH - 1; i > idx1; i--) {
+            if (line[i] == '"') {
+                idx2 = i;
+                break;
+            }
+        }
+        if (idx2 == 0) {
+            setErrorContext(lineCnt, "", "Missing closing quote");
+            return -1;
+        }
+
+        for (size_t i = idx1 + 1; i < idx2; i++) dataSection[dataCnt++] = line[i];
+    } else if (strcmp(directive, ".alloc") == 0) {
+        token = strtok(NULL, "\t\n\r\f\v ,");
+        uint16_t num = (uint16_t) strtol(token, &endptr, 0);
+        if (*endptr != '\0') {
+            setErrorContext(lineCnt, token, "Invalid data");
+            return -1;
+        }
+        dataCnt += num;
+    } else {
+        setErrorContext(lineCnt, directive, "Invalid directive");
+        return -1;
+    }
+    return 0;
+}
+
 // Function to check if a register operand is valid and return its value
 int checkRegister(const char* reg) {
     for (uint8_t i = 0; i < 16; i++) {
@@ -36,18 +117,35 @@ int checkRegister(const char* reg) {
 // Function to generate the instructions, there are faster ways than using lots of if-statements, like using an array
 // of function addresses, as in the emulator, but there is no need to complicate things here
 int genCode(FILE* outputFile, uint8_t opcode, const char* op1, const char* op2, const char* op3) {
+    char* endptr;
     if (opcode < 2) {
-        uint8_t imm = strtol(op2, NULL, 0);
-        return genLoad(outputFile, opcode, op1, imm);
+        if (op2 == NULL) {
+            setErrorContext(lineCnt, "", "Missing operand 2");
+            return -1;
+        }
+        uint8_t imm = strtol(op2, &endptr, 0);
+        if (*endptr == '\0') return genLoad(outputFile, opcode, op1, imm);
+        setErrorContext(lineCnt, op2, "Invalid operand");
+        return -1;
     }
     if (opcode == 2) return genMov(outputFile, opcode, op1, op2);
     if (opcode < 12) return genArit(outputFile, opcode, op1, op2, op3);
     if (opcode < 19) return genJumpPushPop(outputFile, opcode, op1);
     if (opcode < 23) return genOthers(outputFile, opcode);
 
+    if (op2 == NULL) {
+        setErrorContext(lineCnt, "", "Missing operand 2");
+        return -1;
+    }
+
     uint16_t imm;
-    if ((op2[0] >= '0') && (op2[0] <= '9')) imm = strtol(op2, NULL, 0);
-    else {
+    if ((op2[0] >= '0') && (op2[0] <= '9')) {
+        imm = strtol(op2, &endptr, 0);
+        if (*endptr != '\0') {
+            setErrorContext(lineCnt, op2, "Invalid operand");
+            return -1;
+        }
+    } else {
         imm = findLabel(op2);
         if (imm == (uint16_t) -1) {
             setErrorContext(lineCnt, op2, "Invalid label");
@@ -69,6 +167,14 @@ int genLoad(FILE* outputFile, uint8_t opcode, const char* reg, uint8_t imm) {
 }
 
 int genMov(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2) {
+    if (reg1 == NULL) {
+        setErrorContext(lineCnt, "", "Missing operand 1");
+        return -1;
+    }
+    if (reg2 == NULL) {
+        setErrorContext(lineCnt, "", "Missing operand 2");
+        return -1;
+    }
     int reg1Num = checkRegister(reg1);
     int reg2Num = checkRegister(reg2);
     if (reg1Num == -1) {
@@ -85,6 +191,18 @@ int genMov(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2)
 }
 
 int genArit(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2, const char* reg3) {
+    if (reg1 == NULL) {
+        setErrorContext(lineCnt, "", "Missing operand 1");
+        return -1;
+    }
+    if (reg2 == NULL) {
+        setErrorContext(lineCnt, "", "Missing operand 2");
+        return -1;
+    }
+    if ((opcode >= 4) && (opcode <= 8) && (reg3 == NULL)) {
+        setErrorContext(lineCnt, "", "Missing operand 3");
+        return -1;
+    }
     int reg1Num = checkRegister(reg1);
     int reg2Num = checkRegister(reg2);
     int reg3Num = reg3 ? checkRegister(reg3) : 0;
@@ -106,6 +224,10 @@ int genArit(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2
 }
 
 int genJumpPushPop(FILE* outputFile, uint8_t opcode, const char* operand) {
+    if (operand == NULL) {
+        setErrorContext(lineCnt, "", "Missing operand");
+        return -1;
+    }
     int regNum = checkRegister(operand);
     if (regNum == -1 || regNum > 7) {
         setErrorContext(lineCnt, operand, "Invalid operand");

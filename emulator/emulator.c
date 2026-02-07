@@ -26,9 +26,15 @@ int loadRom(const char* romPath) {
         return -1;
     }
 
-    size_t bytesRead = fread(rom, sizeof(uint16_t), fileSize / 2, romFile);
-    if (bytesRead != fileSize / 2) {
-        perror("Error reading file");
+    size_t dataRead = fread(memory, sizeof(uint8_t), 0x2000, romFile);
+    if (dataRead != 0x2000) {
+        perror("Error loading data from rom");
+        return -1;
+    }
+
+    size_t instructionsRead = fread(rom, sizeof(uint16_t), (fileSize - 0x2000) / 2, romFile);
+    if (instructionsRead != ((fileSize - 0x2000) / 2)) {
+        perror("Error loading instructions from rom");
         fclose(romFile);
         return -1;
     }
@@ -46,6 +52,10 @@ int runEmulator(const char* romPath) {
 
     initCpu(&cpu);
 
+#ifdef DEBUG_MODE
+    unsigned waitCnt = 0;
+#endif
+
     while (true) {
         // Print debug to see the CPU state before each instruction
 
@@ -58,6 +68,7 @@ int runEmulator(const char* romPath) {
         }
 
 #ifdef DEBUG_MODE
+
         fputs("\e[1;1H\e[2J", stdout);
         fflush(stdout);
         puts("EMULATOR DEBUGGER");
@@ -69,16 +80,27 @@ int runEmulator(const char* romPath) {
         printf("\tFLAGS: 0x%x\n", cpu.flags);
 
         while (true) {
+            if (cpu.flags & HFLAG) waitCnt = 0;
+            if (waitCnt > 0) {
+                waitCnt--;
+                break;
+            }
             printf("> ");
             char command;
             char str[32];
             scanf(" %c", &command);
-            if (command == 'N') break;
+            if (command == 'N') break; // go to next instruction
             scanf("%s", str);
             unsigned num = strtol(str, NULL, 0);
-            if (command == 'R') printf("Register %d: 0x%x\n", num, cpu.registers[num]);
-            else if (command == 'M') printf("Memory[0x%x]: 0x%x\n", num, memory[num]);
-            else puts("Invalid instruction");
+            if (command == 'R') { // print register
+                if (num < 8) printf("Register %d: 0x%x\n", num, cpu.registers[num]);
+                else printf("Invalid register number\n");
+            } else if (command == 'M') { // print memory
+                if (num < MEM_SIZE) printf("Memory[0x%x]: 0x%x\n", num, memory[num]);
+                else printf("Invalid memory address\n");
+            } else if (command == 'W') { // wait steps
+                waitCnt = num;
+            } else puts("Invalid instruction");
         }
 
 #endif // DEBUG_MODE

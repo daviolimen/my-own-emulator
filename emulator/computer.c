@@ -8,7 +8,7 @@
 void initCpu(CPU* cpu) {
     for (uint8_t i = 0; i < 8; i++) cpu->registers[i] = 0;
     cpu->pc = 0;
-    cpu->sp = 0x0FFF;
+    cpu->sp = 0xFFFF;
     cpu->flags = 0;
 }
 
@@ -142,11 +142,10 @@ void exe_cmp(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
-    const int16_t result = (int16_t) (cpu->registers[rx] - cpu->registers[ry]);
     cpu->flags &= ~0x07;
-    if (result < 0) cpu->flags |= NFLAG;
-    else if (result == 0) cpu->flags |= ZFLAG;
-    else cpu->flags |= PFLAG;
+    if (cpu->registers[rx] > cpu->registers[ry]) cpu->flags |= PFLAG;
+    else if (cpu->registers[rx] == cpu->registers[ry]) cpu->flags |= ZFLAG;
+    else cpu->flags |= NFLAG;
 }
 
 // Executes JMP operation

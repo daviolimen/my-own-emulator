@@ -6,3 +6,4 @@
 
 uint16_t lineCnt = 0;
 uint16_t instructionCnt = 0;
+uint16_t dataCnt = 0;

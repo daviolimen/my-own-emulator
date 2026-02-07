@@ -24,6 +24,11 @@ int findLabel(const char* name);
 // Function to add label to the label array
 void addLabel(const char* name, uint16_t address);
 
+extern uint8_t dataSection[];
+
+// Function to process assembler directives
+int processDirective(const char* directive, const char* line);
+
 static const char* registersStrings[] = {
     "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7",
     "[R0]", "[R1]", "[R2]", "[R3]", "[R4]", "[R5]", "[R6]", "[R7]"
