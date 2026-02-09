@@ -6,9 +6,9 @@
 
 // Initialize CPU registers to default values
 void initCpu(CPU* cpu) {
-    for (uint8_t i = 0; i < 8; i++) cpu->registers[i] = 0;
+    for (uint8_t i = 0; i < 7; i++) cpu->registers[i] = 0;
+    cpu->registers[7] = 0xFFFF; // Internally, R7 is the stack pointer (SP)
     cpu->pc = 0;
-    cpu->sp = 0xFFFF;
     cpu->flags = 0;
 }
 
@@ -183,16 +183,16 @@ void exe_jle(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 // Executes PUSH operation
 void exe_push(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    memory[cpu->sp - 1] = cpu->registers[rx] & 0xFF;
-    memory[cpu->sp] = cpu->registers[rx] >> 8;
-    cpu->sp -= 2;
+    memory[cpu->registers[7] - 1] = cpu->registers[rx] & 0xFF;
+    memory[cpu->registers[7]] = cpu->registers[rx] >> 8;
+    cpu->registers[7] -= 2;
 }
 
 // Executes POP operation
 void exe_pop(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
-    cpu->sp += 2;
-    cpu->registers[rx] = memory[cpu->sp] << 8 | memory[cpu->sp - 1];
+    cpu->registers[7] += 2;
+    cpu->registers[rx] = memory[cpu->registers[7]] << 8 | memory[cpu->registers[7] - 1];
 }
 
 // Executes HALT operation

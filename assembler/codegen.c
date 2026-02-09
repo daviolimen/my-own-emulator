@@ -18,8 +18,8 @@ label labels[128];
 int labelCnt = 0;
 
 static const char* registersStrings[] = {
-    "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7",
-    "[R0]", "[R1]", "[R2]", "[R3]", "[R4]", "[R5]", "[R6]", "[R7]"
+    "R0", "R1", "R2", "R3", "R4", "R5", "R6", "SP",
+    "[R0]", "[R1]", "[R2]", "[R3]", "[R4]", "[R5]", "[R6]", "[SP]"
 };
 
 // Function to find label in the array, O(N) for simplicity, could be optimized to hash for O(1) or RBT for O(log N)

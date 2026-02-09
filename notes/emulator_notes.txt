@@ -5,9 +5,12 @@ Okay, so before we hop into programming, we need to define how exactly our archi
 I want something simple, but that would be good enough to scale up without many software problems, so:
 
 * 16-bit architecture
-* 8 general-purpose registers + SP + PC + FLAGS (negative, zero, positive, halt)
+* 7 general-purpose registers + SP + PC + FLAGS (negative, zero, positive, halt)
 * 64KiB RAM (maximum indexable memory for 16-bit)
-* Only the 8 general-purpose registers are used in the assembly, SP, PC and FLAGS are internally controlled
+* Only the 7 general-purpose registers and the SP are used in the assembly, PC and FLAGS are internally controlled
+
+OBS: The encoding for the registers is straightforward, RX is just encoded as X in the binary code. Also, internally the
+stack pointer (SP) is the seventh-register
 
 2. Instruction Set
 
