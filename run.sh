@@ -3,6 +3,7 @@
 PROJECT_PATH="/home/davi/CLionProjects/my-own-emulator"
 EMULATOR="${PROJECT_PATH}/cmake-build-debug/emulator/emulator"
 ASSEMBLER="${PROJECT_PATH}/cmake-build-debug/assembler/assembler"
+COMPILER="${PROJECT_PATH}/cmake-build-debug/compiler/compiler"
 
 if [[ $# -lt 2 ]]; then
   printf "Usage: run.sh [option] file\n"
@@ -14,6 +15,10 @@ if [[ $# -lt 2 ]]; then
 fi
 
 filename=$2
+
+if [[ "$1" == "-c" ]]; then
+  ${COMPILER} "$2"
+fi
 
 if [[ "$1" == "-a" ]]; then
   ${ASSEMBLER} "$2" "${filename%.*}.bin"

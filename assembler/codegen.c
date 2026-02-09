@@ -118,14 +118,14 @@ int processDirective(const char* directive, const char* line) {
 }
 
 // Function to check if a register operand is valid and return its value
-int checkRegister(const char* reg) {
+static int checkRegister(const char* reg) {
     for (uint8_t i = 0; i < 16; i++) {
         if (strcmp(reg, registersStrings[i]) == 0) return i;
     }
     return -1;
 }
 
-int genLoad(FILE* outputFile, uint8_t opcode, const char* reg, uint8_t imm) {
+static int genLoad(FILE* outputFile, uint8_t opcode, const char* reg, uint8_t imm) {
     int regNum = checkRegister(reg);
     if (regNum == -1 || regNum > 7) {
         setErrorContext(lineCnt, reg, "Invalid operand");
@@ -136,7 +136,7 @@ int genLoad(FILE* outputFile, uint8_t opcode, const char* reg, uint8_t imm) {
     return 0;
 }
 
-int genMov(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2) {
+static int genMov(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2) {
     if (reg1 == NULL) {
         setErrorContext(lineCnt, "", "Missing operand 1");
         return -1;
@@ -160,7 +160,7 @@ int genMov(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2)
     return 0;
 }
 
-int genShift(FILE* outputFile, uint8_t opcode, int reg1Num, int reg2Num, const char* imm) {
+static int genShift(FILE* outputFile, uint8_t opcode, int reg1Num, int reg2Num, const char* imm) {
     char* endptr;
     uint8_t immNum = strtol(imm, &endptr, 0);
     if (*endptr != '\0') {
@@ -173,7 +173,7 @@ int genShift(FILE* outputFile, uint8_t opcode, int reg1Num, int reg2Num, const c
     return 0;
 }
 
-int genArit(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2, const char* reg3) {
+static int genArit(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2, const char* reg3) {
     if (reg1 == NULL) {
         setErrorContext(lineCnt, "", "Missing operand 1");
         return -1;
@@ -212,7 +212,7 @@ int genArit(FILE* outputFile, uint8_t opcode, const char* reg1, const char* reg2
     return 0;
 }
 
-int genJumpPushPop(FILE* outputFile, uint8_t opcode, const char* operand) {
+static int genJumpPushPop(FILE* outputFile, uint8_t opcode, const char* operand) {
     if (operand == NULL) {
         setErrorContext(lineCnt, "", "Missing operand");
         return -1;
@@ -228,7 +228,7 @@ int genJumpPushPop(FILE* outputFile, uint8_t opcode, const char* operand) {
     return 0;
 }
 
-int genOthers(FILE* outputFile, uint8_t opcode) {
+static int genOthers(FILE* outputFile, uint8_t opcode) {
     uint16_t inst = ((opcode & 0x1F) << 8);
     fwrite(&inst, sizeof(uint16_t), 1, outputFile);
     return 0;

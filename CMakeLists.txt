@@ -5,3 +5,4 @@ set(CMAKE_C_STANDARD 11)
 
 add_subdirectory(emulator)
 add_subdirectory(assembler)
+add_subdirectory(compiler)

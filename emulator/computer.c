@@ -13,7 +13,7 @@ void initCpu(CPU* cpu) {
 }
 
 // Executes load lower immediate operation
-void exe_lli(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_lli(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t imm = instruction & 0xFF;
     const uint8_t reg = instruction >> 13;
     cpu->registers[reg] &= 0xFF00;
@@ -21,7 +21,7 @@ void exe_lli(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes load upper immediate operation
-void exe_lui(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_lui(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t imm = instruction & 0xFF;
     const uint8_t reg = instruction >> 13;
     cpu->registers[reg] &= 0xFF;
@@ -29,7 +29,7 @@ void exe_lui(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes MOV operation
-void exe_mov(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_mov(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     instruction &= 0xFF;
     const uint8_t mx = instruction >> 7;
     instruction &= 0x7F;
@@ -50,7 +50,7 @@ void exe_mov(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes NOT operation
-void exe_not(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_not(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
@@ -58,7 +58,7 @@ void exe_not(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes ADD operation
-void exe_add(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_add(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
@@ -68,7 +68,7 @@ void exe_add(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes SUB operation
-void exe_sub(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_sub(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
@@ -78,7 +78,7 @@ void exe_sub(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes AND operation
-void exe_and(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_and(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
@@ -88,7 +88,7 @@ void exe_and(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes OR operation
-void exe_or(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_or(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
@@ -98,7 +98,7 @@ void exe_or(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes XOR operation
-void exe_xor(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_xor(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
@@ -108,7 +108,7 @@ void exe_xor(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes left shift operation
-void exe_shl(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_shl(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
@@ -118,7 +118,7 @@ void exe_shl(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes right shift operation
-void exe_shr(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_shr(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
@@ -128,7 +128,7 @@ void exe_shr(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes CMP operation
-void exe_cmp(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_cmp(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     instruction &= 0x7F;
     const uint8_t ry = instruction >> 4;
@@ -139,49 +139,49 @@ void exe_cmp(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes JMP operation
-void exe_jmp(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_jmp(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     cpu->pc = cpu->registers[rx] - 1;
 }
 
 // Executes JEQ operation
-void exe_jeq(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_jeq(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     if (cpu->flags & ZFLAG) cpu->pc = cpu->registers[rx] - 1;
 }
 
 // Executes JNE operation
-void exe_jne(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_jne(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     if (!(cpu->flags & ZFLAG)) cpu->pc = cpu->registers[rx] - 1;
 }
 
 // Executes JGT operation
-void exe_jgt(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_jgt(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     if (cpu->flags & PFLAG) cpu->pc = cpu->registers[rx] - 1;
 }
 
 // Executes JGE operation
-void exe_jge(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_jge(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     if (!(cpu->flags & NFLAG)) cpu->pc = cpu->registers[rx] - 1;
 }
 
 // Executes JLT operation
-void exe_jlt(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_jlt(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     if (cpu->flags & NFLAG) cpu->pc = cpu->registers[rx] - 1;
 }
 
 // Executes JLE operation
-void exe_jle(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_jle(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     if (!(cpu->flags & PFLAG)) cpu->pc = cpu->registers[rx] - 1;
 }
 
 // Executes PUSH operation
-void exe_push(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_push(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     memory[cpu->registers[7] - 1] = cpu->registers[rx] & 0xFF;
     memory[cpu->registers[7]] = cpu->registers[rx] >> 8;
@@ -189,18 +189,18 @@ void exe_push(CPU* cpu, uint8_t* memory, uint16_t instruction) {
 }
 
 // Executes POP operation
-void exe_pop(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_pop(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     const uint8_t rx = instruction >> 13;
     cpu->registers[7] += 2;
     cpu->registers[rx] = memory[cpu->registers[7]] << 8 | memory[cpu->registers[7] - 1];
 }
 
 // Executes HALT operation
-void exe_hlt(CPU* cpu, uint8_t* memory, uint16_t instruction) {
+static void exe_hlt(CPU* cpu, uint8_t* memory, uint16_t instruction) {
     cpu->flags |= HFLAG;
 }
 
-void (*operations[])(CPU*, uint8_t*, uint16_t) = {
+static void (*operations[])(CPU*, uint8_t*, uint16_t) = {
     exe_lli, exe_lui, exe_mov, exe_not, exe_add, exe_sub, exe_and, exe_or, exe_xor, exe_shl, exe_shr, exe_cmp, exe_jmp,
     exe_jeq, exe_jne, exe_jgt, exe_jge, exe_jlt, exe_jle, exe_push, exe_pop, exe_hlt
 };
