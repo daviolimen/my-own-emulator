@@ -19,7 +19,7 @@
 #define CYCLES_PER_FRAME (CPU_FREQ_HZ / FRAMES_PER_SECOND)
 
 CPU cpu;
-uint8_t memory[MEM_SIZE];
+uint16_t memory[MEM_SIZE];
 uint16_t rom[MEM_SIZE];
 
 // Function to load the instructions from file to rom array
@@ -40,14 +40,14 @@ int loadRom(const char* romPath) {
         return -1;
     }
 
-    size_t dataRead = fread(memory, sizeof(uint8_t), 0x2000, romFile);
+    size_t dataRead = fread(memory, sizeof(uint16_t), 0x2000, romFile);
     if (dataRead != 0x2000) {
         perror("Error loading data from rom");
         return -1;
     }
 
-    size_t instructionsRead = fread(rom, sizeof(uint16_t), (fileSize - 0x2000) / 2, romFile);
-    if (instructionsRead != ((fileSize - 0x2000) / 2)) {
+    size_t instructionsRead = fread(rom, sizeof(uint16_t), (fileSize - 0x4000) / 2, romFile);
+    if (instructionsRead != ((fileSize - 0x4000) / 2)) {
         perror("Error loading instructions from rom");
         fclose(romFile);
         return -1;

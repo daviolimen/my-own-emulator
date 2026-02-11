@@ -97,7 +97,12 @@ Token lexerNext(Lexer* l) {
             case '+': return makeToken(l, TOK_PLUS, l->cur - 1, 1);
             case '-': return makeToken(l, TOK_MINUS, l->cur - 1, 1);
             case '*': return makeToken(l, TOK_STAR, l->cur - 1, 1);
-            case '/': return makeToken(l, TOK_SLASH, l->cur - 1, 1);
+            case '/':
+                if (match(l, '/')) {
+                    while (peek(l) != '\n' && peek(l) != '\0') advance(l);
+                    break;
+                }
+                return makeToken(l, TOK_SLASH, l->cur - 1, 1);
 
             case '=':
                 if (match(l, '=')) return makeToken(l, TOK_EQ, l->cur - 2, 2);

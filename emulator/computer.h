@@ -24,6 +24,6 @@ typedef struct {
 
 void initCpu(CPU* cpu);
 
-int executeInstruction(CPU* cpu, uint8_t* memory, uint16_t instruction);
+int executeInstruction(CPU* cpu, uint16_t* memory, uint16_t instruction);
 
 #endif //EMULATOR_COMPUTER_H

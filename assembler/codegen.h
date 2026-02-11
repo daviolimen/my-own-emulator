@@ -14,7 +14,7 @@ int findLabel(const char* name);
 // Function to add label to the label array
 void addLabel(const char* name, uint16_t address);
 
-extern uint8_t dataSection[];
+extern uint16_t dataSection[];
 
 // Function to process assembler directives
 int processDirective(const char* directive, const char* line);

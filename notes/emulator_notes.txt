@@ -6,7 +6,7 @@ I want something simple, but that would be good enough to scale up without many 
 
 * 16-bit architecture
 * 7 general-purpose registers + SP + PC + FLAGS (negative, zero, positive, halt)
-* 64KiB RAM (maximum indexable memory for 16-bit)
+* 128KiB word-addressable RAM
 * Only the 7 general-purpose registers and the SP are used in the assembly, PC and FLAGS are internally controlled
 
 OBS: The encoding for the registers is straightforward, RX is just encoded as X in the binary code. Also, internally the
@@ -34,6 +34,8 @@ Memory instructions:
 * MOV RX, RY (RX <- RY)
 * MOV RX, [RY] (RX <- mem[RY])
 * MOV [RX], RY (mem[RX] <- RY)
+* MOV [RX], [RY] (mem[RX] <- mem[RY])   (i decided to implement this because it is pretty usefol when dealing with
+                                         rendering data from arrays to the framebuffer and etc)
 
 Arithmetic-Logic instructions:
 
@@ -102,6 +104,10 @@ Extra instructions:
 * HLT  = ...10101 ........
 * NOP  = ...10110 ........
 
+OBS: I ended up making some poor choices in this section, I could have easily grouped some instructions under the same
+opcode and then add another field to distinguish (like for the jump instructions, for example), but anyways, the end
+goal is to make things work, so that's okay
+
 4. Debugging
 
 So I added a debugging mode for the emulator, that basically just allows you to go instruction by instruction through
@@ -117,10 +123,10 @@ executed
 
 5. Memory Mapping
 
-I have 64KiB of RAM, it is a lot for simple computation, but not much for graphics. The most accurate way to handle this
+I have 128KiB of RAM, it is a lot for simple computation, but not much for graphics. The most accurate way to handle this
 would be like old consoles used to do with tile-based graphics. But as I just want to get things to be as simple as
 possible, I guess I will just map the screen to some region in memory. So here it is:
 
 0x0000 - 0x1FFF -> static memory defined with the assembly directives
-0x2000 - 0x9FFF -> 256x128 monochromatic framebuffer to be mapped onto a window
+0x2000 - 0x9FFF -> 256x128 RGB565 framebuffer to be mapped onto a window
 0xA000 - 0xFFFF -> stack region

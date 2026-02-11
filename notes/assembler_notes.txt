@@ -6,15 +6,15 @@ So, I decided to create this file to explain a little bit about how the assemble
 the next instruction
 
 * Directives are:
-.db name 1, 2, 3, 4, ... (define bytes)
 .dw name 1, 2, 3, 4, ... (define words)
 .ascii name "content of the string" (define string)
-.alloc name 30 (allocate the number of bytes specified with 0s)
+.asciiz name "content of the string" (define null-terminated string)
+.alloc name 30 (allocate the number of words specified with 0s)
 
 * Everything after a semicolon is considered a comment (except if the semicolon is inside a string literal, of course)
 
 * The assembler does a first pass to determine the values of the labels and create a buffer for the data from the
-directives. After this, the assembler writes the first 0x2000 bytes of the .bin file to be the static data encoded by
+directives. After this, the assembler writes the first 0x2000 words of the .bin file to be the static data encoded by
 the directives. Then it starts the second pass where each instruction is written sequentially in the .bin file.
 If no errors are found, the .asm file is successfully assembled into a .bin file that can be run with the emulator
 
@@ -23,3 +23,6 @@ emulator, so, as I have to index them separately, I had to come up with somethin
 the normal labels (those with the : at the end) just have the address of the instruction. This is kind of a fundamental
 difference between Harvard and Von Neumann architectures, but anyways, just explaining why I did not use the same label
 syntax for the labels of the directives
+
+* So, as I said in the emulator notes, the SP is now addressable, this means that we now have 7 register symbols (R0-R6)
+plus the symbol SP (Stack Pointer), that can be used as an operand as the other registers

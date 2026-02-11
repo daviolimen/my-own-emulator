@@ -10,6 +10,6 @@
 #define FRAMEBUFFER_ADDRESS 0x2000
 
 int initWindow();
-int windowLoop(const uint8_t* framebuffer);
+int windowLoop(const uint16_t* framebuffer);
 
 #endif //MY_OWN_EMULATOR_GRAPHICS_H

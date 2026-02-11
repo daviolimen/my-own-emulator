@@ -175,7 +175,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    fwrite(dataSection, sizeof(uint8_t), 0x2000, outputFile);
+    fwrite(dataSection, sizeof(uint16_t), 0x2000, outputFile);
 
     rewind(inputFile);
 

@@ -38,7 +38,7 @@ void addLabel(const char* name, uint16_t address) {
 }
 
 // Buffer to store the data defined in the program
-uint8_t dataSection[0x2000];
+uint16_t dataSection[0x2000];
 
 // Function to process assembler directives
 int processDirective(const char* directive, const char* line) {
@@ -53,16 +53,7 @@ int processDirective(const char* directive, const char* line) {
     }
     char* endptr;
     addLabel(token, dataCnt);
-    if (strcmp(directive, ".db") == 0) {
-        while ((token = strtok(NULL, "\t\n\r\f\v ,"))) {
-            uint8_t num = (uint8_t) strtol(token, &endptr, 0);
-            if (*endptr != '\0') {
-                setErrorContext(lineCnt, token, "Invalid data");
-                return -1;
-            }
-            dataSection[dataCnt++] = num;
-        }
-    } else if (strcmp(directive, ".dw") == 0) {
+    if (strcmp(directive, ".dw") == 0) {
         while ((token = strtok(NULL, "\t\n\r\f\v ,"))) {
             uint16_t num = (uint16_t) strtol(token, &endptr, 0);
             if (*endptr != '\0') {
@@ -70,7 +61,6 @@ int processDirective(const char* directive, const char* line) {
                 return -1;
             }
             dataSection[dataCnt++] = num;
-            dataSection[dataCnt++] = num >> 8;
         }
     } else if (strcmp(directive, ".ascii") == 0) {
         token = strtok(NULL, "\t\n\r\f\v ," );
@@ -101,7 +91,38 @@ int processDirective(const char* directive, const char* line) {
             return -1;
         }
 
-        for (size_t i = idx1 + 1; i < idx2; i++) dataSection[dataCnt++] = line[i];
+        for (size_t i = idx1 + 1; i < idx2; i++) dataSection[dataCnt++] = (uint16_t) line[i];
+    } else if (strcmp(directive, ".asciiz") == 0) {
+        token = strtok(NULL, "\t\n\r\f\v ," );
+        if (token == NULL) return 0;
+        if (token[0] != '"') {
+            setErrorContext(lineCnt, token, "Missing opening quote");
+            return -1;
+        }
+
+        // as we can only have one string literal in the line, I get the first and last quote I find, this way the
+        // assembler can handle quotes inside the string quotes
+        size_t idx1 = 0;
+        for (size_t i = 0; i < MAX_LINE_LENGTH; i++) {
+            if (line[i] == '"') {
+                idx1 = i;
+                break;
+            }
+        }
+        size_t idx2 = 0;
+        for (size_t i = MAX_LINE_LENGTH - 1; i > idx1; i--) {
+            if (line[i] == '"') {
+                idx2 = i;
+                break;
+            }
+        }
+        if (idx2 == 0) {
+            setErrorContext(lineCnt, "", "Missing closing quote");
+            return -1;
+        }
+
+        for (size_t i = idx1 + 1; i < idx2; i++) dataSection[dataCnt++] = (uint16_t) line[i];
+        dataSection[dataCnt++] = 0;
     } else if (strcmp(directive, ".alloc") == 0) {
         token = strtok(NULL, "\t\n\r\f\v ,");
         uint16_t num = (uint16_t) strtol(token, &endptr, 0);

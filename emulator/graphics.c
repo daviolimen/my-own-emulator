@@ -11,9 +11,6 @@ SDL_Window* window;
 SDL_Texture* texture;
 SDL_Renderer* renderer;
 
-uint32_t grayPalette[256];
-uint32_t sdlFramebuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
-
 int initWindow() {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("SDL_Init Error: %s\n", SDL_GetError());
@@ -43,24 +40,16 @@ int initWindow() {
 
     texture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_ARGB8888,
+        SDL_PIXELFORMAT_RGB565,
         SDL_TEXTUREACCESS_STREAMING,
         SCREEN_WIDTH,
         SCREEN_HEIGHT
         );
 
-    for (int i = 0; i < 256; i++) {
-        grayPalette[i] = 0xFF000000 | (i << 16) | (i << 8) | i;
-    }
-
     return 0;
 }
 
-int windowLoop(const uint8_t* framebuffer) {
-    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
-        sdlFramebuffer[i] = grayPalette[framebuffer[i]];
-    }
-
+int windowLoop(const uint16_t* framebuffer) {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
@@ -71,7 +60,7 @@ int windowLoop(const uint8_t* framebuffer) {
     void* pixels;
     int pitch;
     SDL_LockTexture(texture, NULL, &pixels, &pitch);
-    memcpy(pixels, sdlFramebuffer, SCREEN_HEIGHT * pitch);
+    memcpy(pixels, framebuffer, SCREEN_HEIGHT * pitch);
     SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
