@@ -11,10 +11,10 @@ static const struct {
     const char* name;
     TokenType type;
 } keywords[] = {
+    {"var", TOK_VAR},
     {"if", TOK_IF},
-    {"int", TOK_INT},
+    {"else", TOK_ELSE},
     {"while", TOK_WHILE},
-    {"return", TOK_RETURN}
 };
 
 static char peek(Lexer* l) {
@@ -57,9 +57,7 @@ static Token number(Lexer* l) {
     const char* start = l->cur - 1;
     int value = *start - '0';
 
-    while (isdigit(peek(l))) {
-        value = value * 10 + (advance(l) - '0');
-    }
+    while (isdigit(peek(l))) value = value * 10 + (advance(l) - '0');
 
     Token t = makeToken(l, TOK_NUMBER, start, (int) (l->cur - start));
     t.value = value;
@@ -70,7 +68,6 @@ static Token identifier(Lexer* l) {
     const char* start = l->cur - 1;
 
     while (isalnum(peek(l)) || peek(l) == '_') advance(l);
-
     return getKeywordToken(l, start);
 }
 
@@ -96,29 +93,27 @@ Token lexerNext(Lexer* l) {
 
             case '+': return makeToken(l, TOK_PLUS, l->cur - 1, 1);
             case '-': return makeToken(l, TOK_MINUS, l->cur - 1, 1);
-            case '*': return makeToken(l, TOK_STAR, l->cur - 1, 1);
-            case '/':
-                if (match(l, '/')) {
-                    while (peek(l) != '\n' && peek(l) != '\0') advance(l);
-                    break;
-                }
-                return makeToken(l, TOK_SLASH, l->cur - 1, 1);
+            case '&': return makeToken(l, TOK_AND, l->cur - 1, 1);
+            case '|': return makeToken(l, TOK_OR, l->cur - 1, 1);
+            case '^': return makeToken(l, TOK_XOR, l->cur - 1, 1);
 
             case '=':
-                if (match(l, '=')) return makeToken(l, TOK_EQ, l->cur - 2, 2);
-                return makeToken(l, TOK_ASSIGN, l->cur - 1, 1);
+                if (match(l, '=')) return makeToken(l, TOK_EQUAL_EQUAL, l->cur - 2, 2);
+                return makeToken(l, TOK_EQUAL, l->cur - 1, 1);
 
             case '!':
-                if (match(l, '=')) return makeToken(l, TOK_NEQ, l->cur - 2, 2);
-                break;
+                if (match(l, '=')) return makeToken(l, TOK_BANG_EQUAL, l->cur - 2, 2);
+                return makeToken(l, TOK_BANG, l->cur - 1, 1);
 
             case '<':
-                if (match(l, '=')) return makeToken(l, TOK_LE, l->cur - 2, 2);
-                return makeToken(l, TOK_LT, l->cur - 1, 1);
+                if (match(l, '=')) return makeToken(l, TOK_LESS_EQUAL, l->cur - 2, 2);
+                if (match(l, '<')) return makeToken(l, TOK_LSHIFT, l->cur - 2, 2);
+                return makeToken(l, TOK_LESS, l->cur - 1, 1);
 
             case '>':
-                if (match(l, '=')) return makeToken(l, TOK_GE, l->cur - 2, 2);
-                return makeToken(l, TOK_GT, l->cur - 1, 1);
+                if (match(l, '=')) return makeToken(l, TOK_GREATER_EQUAL, l->cur - 2, 2);
+                if (match(l, '>')) return makeToken(l, TOK_RSHIFT, l->cur - 2, 2);
+                return makeToken(l, TOK_GREATER, l->cur - 1, 1);
 
             case '(':
                 return makeToken(l, TOK_LPAREN, l->cur - 1, 1);
@@ -134,7 +129,7 @@ Token lexerNext(Lexer* l) {
             default:
                 if (isdigit(c)) return number(l);
                 if (isalpha(c)) return identifier(l);
-                break;
+                reportError(l->line, "Unexpected character", l->cur - 1, 1);
         }
     }
 }

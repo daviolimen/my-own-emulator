@@ -1,3 +1,4 @@
-while (516 > 80) {
-    legal = 15;
+if (10 > 5) {
+    int num = 25 << x;
+    int _top = 10;
 }

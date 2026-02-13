@@ -6,6 +6,7 @@
 #define MY_OWN_EMULATOR_LEXER_H
 
 #include "token.h"
+#include "error.h"
 
 typedef struct {
     const char* source;

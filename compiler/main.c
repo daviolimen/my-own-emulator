@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "lexer.h"
+#include "parser.h"
 
 char* getFile(const char* path) {
     FILE* file = fopen(path, "rb");
@@ -56,25 +57,10 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Lexer lexer;
-    lexerInit(&lexer, sourceCode);
+    Lexer lex;
+    lexerInit(&lex, sourceCode);
+    currentToken = lexerNext(&lex);
 
-    for (;;) {
-        Token t = lexerNext(&lexer);
-        printf("Line %d: %d", t.line, t.type);
-
-        if (t.type == TOK_IDENT || t.type == TOK_NUMBER) {
-            printf(" (%.*s)", t.length, t.start);
-        }
-
-        if (t.type == TOK_NUMBER) {
-            printf(" = %d", t.value);
-        }
-
-        printf("\n");
-
-        if (t.type == TOK_EOF) break;
-    }
-
+    free(sourceCode);
     return 0;
 }
